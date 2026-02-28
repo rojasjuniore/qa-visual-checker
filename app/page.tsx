@@ -496,19 +496,26 @@ export default function Home() {
             <CardContent className="p-6 space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList 
-                  className="w-full grid grid-cols-2 p-1 rounded-xl"
-                  style={{ backgroundColor: `${COLORS.white}05` }}
+                  className="w-full grid grid-cols-2 p-1.5 rounded-xl"
+                  style={{ backgroundColor: `${COLORS.white}10` }}
                 >
                   <TabsTrigger 
                     value="manual" 
-                    className="rounded-lg data-[state=active]:text-white"
-                    style={{ '--active-bg': `${COLORS.white}10` } as any}
+                    className="rounded-lg font-semibold py-2.5 transition-all"
+                    style={{ 
+                      color: activeTab === 'manual' ? COLORS.white : `${COLORS.white}70`,
+                      backgroundColor: activeTab === 'manual' ? COLORS.blue : 'transparent'
+                    }}
                   >
                     Manual
                   </TabsTrigger>
                   <TabsTrigger 
                     value="figma" 
-                    className="rounded-lg data-[state=active]:text-white"
+                    className="rounded-lg font-semibold py-2.5 transition-all"
+                    style={{ 
+                      color: activeTab === 'figma' ? COLORS.white : `${COLORS.white}70`,
+                      backgroundColor: activeTab === 'figma' ? COLORS.blue : 'transparent'
+                    }}
                   >
                     Figma API
                   </TabsTrigger>
