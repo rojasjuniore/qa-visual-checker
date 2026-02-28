@@ -14,18 +14,41 @@ interface Correction {
   expected: string;
   found: string;
   severity: 'error' | 'warning' | 'info';
+  category?: string;
+  location?: string;
+  suggestion?: string;
+}
+
+interface AIComparison {
+  summary: string;
+  match_percentage: number;
+  differences: Array<{
+    category: string;
+    severity: string;
+    location: string;
+    expected: string;
+    found: string;
+    suggestion?: string;
+  }>;
 }
 
 export default function Home() {
   const [cardText, setCardText] = useState('');
   const [figmaText, setFigmaText] = useState('');
+  const [figmaUrl, setFigmaUrl] = useState('');
+  const [figmaToken, setFigmaToken] = useState('');
+  const [openaiKey, setOpenaiKey] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [figmaImageFile, setFigmaImageFile] = useState<File | null>(null);
   const [figmaImagePreview, setFigmaImagePreview] = useState<string | null>(null);
   const [corrections, setCorrections] = useState<Correction[]>([]);
+  const [aiComparison, setAIComparison] = useState<AIComparison | null>(null);
   const [isComparing, setIsComparing] = useState(false);
+  const [isLoadingFigma, setIsLoadingFigma] = useState(false);
   const [comparisonDone, setComparisonDone] = useState(false);
+  const [activeTab, setActiveTab] = useState('manual');
+  const [figmaData, setFigmaData] = useState<any>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'example' | 'figma') => {
     const file = e.target.files?.[0];
@@ -44,26 +67,70 @@ export default function Home() {
     }
   };
 
+  const fetchFromFigma = async () => {
+    if (!figmaUrl) {
+      alert('Por favor ingresa una URL de Figma');
+      return;
+    }
+
+    setIsLoadingFigma(true);
+    try {
+      const response = await fetch('/api/figma', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          figmaUrl,
+          accessToken: figmaToken || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Error al obtener datos de Figma');
+        return;
+      }
+
+      setFigmaData(data);
+
+      // Set text content from Figma
+      if (data.node?.textContent?.length > 0) {
+        const formattedText = data.node.textContent
+          .map((text: string, i: number) => `Texto ${i + 1}: ${text}`)
+          .join('\n');
+        setFigmaText(formattedText);
+      }
+
+      // Set image from Figma
+      if (data.node?.imageUrl) {
+        setFigmaImagePreview(data.node.imageUrl);
+      }
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al conectar con Figma');
+    } finally {
+      setIsLoadingFigma(false);
+    }
+  };
+
   const extractFieldsFromText = (text: string): Record<string, string> => {
     const fields: Record<string, string> = {};
     const lines = text.split('\n').filter(line => line.trim());
     
     lines.forEach(line => {
-      // Try to extract key: value pairs
       const colonMatch = line.match(/^([^:]+):\s*(.+)$/);
       if (colonMatch) {
         fields[colonMatch[1].trim().toLowerCase()] = colonMatch[2].trim();
         return;
       }
       
-      // Try to extract key = value pairs
       const equalMatch = line.match(/^([^=]+)=\s*(.+)$/);
       if (equalMatch) {
         fields[equalMatch[1].trim().toLowerCase()] = equalMatch[2].trim();
         return;
       }
       
-      // Try to extract key - value pairs
       const dashMatch = line.match(/^([^-]+)-\s*(.+)$/);
       if (dashMatch) {
         fields[dashMatch[1].trim().toLowerCase()] = dashMatch[2].trim();
@@ -76,7 +143,6 @@ export default function Home() {
   const compareFields = (cardFields: Record<string, string>, figmaFields: Record<string, string>): Correction[] => {
     const corrections: Correction[] = [];
     
-    // Check fields in card against figma
     Object.keys(cardFields).forEach(key => {
       const cardValue = cardFields[key];
       const figmaValue = figmaFields[key];
@@ -98,7 +164,6 @@ export default function Home() {
       }
     });
     
-    // Check fields in figma that are not in card
     Object.keys(figmaFields).forEach(key => {
       if (!cardFields[key]) {
         corrections.push({
@@ -113,42 +178,73 @@ export default function Home() {
     return corrections;
   };
 
+  const compareWithAI = async () => {
+    if (!imagePreview || !figmaImagePreview) {
+      return null;
+    }
+
+    try {
+      const response = await fetch('/api/compare-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image1: imagePreview,
+          image2: figmaImagePreview,
+          apiKey: openaiKey || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('AI comparison error:', data.error);
+        return null;
+      }
+
+      return data.comparison as AIComparison;
+    } catch (error) {
+      console.error('Error comparing with AI:', error);
+      return null;
+    }
+  };
+
   const handleCompare = async () => {
     setIsComparing(true);
     setCorrections([]);
-    
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    setAIComparison(null);
+
+    // Text comparison
     const cardFields = extractFieldsFromText(cardText);
     const figmaFields = extractFieldsFromText(figmaText);
+    const textCorrections = compareFields(cardFields, figmaFields);
     
-    const newCorrections = compareFields(cardFields, figmaFields);
-    
-    // If no text corrections but we have images, add a note
-    if (newCorrections.length === 0 && (imagePreview || figmaImagePreview)) {
-      if (imagePreview && figmaImagePreview) {
-        newCorrections.push({
-          field: 'Imágenes',
-          expected: 'Verificar visualmente',
-          found: 'Ambas imágenes cargadas - comparar manualmente',
-          severity: 'info'
-        });
+    // AI Image comparison
+    let aiResult: AIComparison | null = null;
+    if (imagePreview && figmaImagePreview) {
+      aiResult = await compareWithAI();
+      if (aiResult) {
+        setAIComparison(aiResult);
+        
+        // Convert AI differences to corrections format
+        const aiCorrections: Correction[] = aiResult.differences.map(diff => ({
+          field: diff.location || diff.category,
+          expected: diff.expected,
+          found: diff.found,
+          severity: diff.severity as 'error' | 'warning' | 'info',
+          category: diff.category,
+          suggestion: diff.suggestion,
+        }));
+        
+        setCorrections([...textCorrections, ...aiCorrections]);
+      } else {
+        setCorrections(textCorrections);
       }
+    } else {
+      setCorrections(textCorrections);
     }
-    
-    setCorrections(newCorrections);
+
     setComparisonDone(true);
     setIsComparing(false);
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'error': return 'destructive';
-      case 'warning': return 'secondary';
-      case 'info': return 'outline';
-      default: return 'default';
-    }
   };
 
   const getSeverityIcon = (severity: string) => {
@@ -157,6 +253,18 @@ export default function Home() {
       case 'warning': return '⚠️';
       case 'info': return 'ℹ️';
       default: return '•';
+    }
+  };
+
+  const getCategoryIcon = (category?: string) => {
+    switch (category?.toUpperCase()) {
+      case 'TEXTO': return '📝';
+      case 'COLORES': return '🎨';
+      case 'TIPOGRAFÍA': return '🔤';
+      case 'LAYOUT': return '📐';
+      case 'ELEMENTOS': return '🧩';
+      case 'PROPORCIONES': return '📏';
+      default: return '📋';
     }
   };
 
@@ -170,7 +278,47 @@ export default function Home() {
           <p className="text-slate-400">
             Compara piezas gráficas con información de tarjetas, textos e imágenes de Figma
           </p>
+          <div className="flex justify-center gap-2 mt-4">
+            <Badge variant="outline" className="text-blue-400 border-blue-400">Figma API</Badge>
+            <Badge variant="outline" className="text-green-400 border-green-400">AI Vision</Badge>
+          </div>
         </div>
+
+        {/* API Keys Section */}
+        <Card className="bg-slate-800/50 border-slate-700 mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white text-lg flex items-center gap-2">
+              🔐 Configuración de APIs (opcional)
+            </CardTitle>
+            <CardDescription>
+              Las claves se pueden configurar aquí o como variables de entorno
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">Figma Access Token</label>
+                <Input
+                  type="password"
+                  placeholder="figd_xxxx..."
+                  className="bg-slate-900 border-slate-600 text-white"
+                  value={figmaToken}
+                  onChange={(e) => setFigmaToken(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">OpenAI API Key</label>
+                <Input
+                  type="password"
+                  placeholder="sk-xxxx..."
+                  className="bg-slate-900 border-slate-600 text-white"
+                  value={openaiKey}
+                  onChange={(e) => setOpenaiKey(e.target.value)}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Card/Text Input */}
@@ -196,7 +344,7 @@ Fecha: 15 de marzo 2024"
               />
               <div>
                 <label className="block text-sm text-slate-400 mb-2">
-                  Imagen de la pieza (opcional)
+                  Imagen de la pieza
                 </label>
                 <Input
                   type="file"
@@ -235,23 +383,72 @@ Fecha: 15 de marzo 2024"
                 🎨 Información de Figma/Referencia
               </CardTitle>
               <CardDescription>
-                Pega la información que debería tener según el diseño en Figma
+                Conecta con Figma o pega la información manualmente
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2 bg-slate-900">
+                  <TabsTrigger value="manual">Manual</TabsTrigger>
+                  <TabsTrigger value="figma">Desde Figma</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="figma" className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">URL de Figma</label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://www.figma.com/design/xxxxx?node-id=1234"
+                        className="bg-slate-900 border-slate-600 text-white flex-1"
+                        value={figmaUrl}
+                        onChange={(e) => setFigmaUrl(e.target.value)}
+                      />
+                      <Button 
+                        onClick={fetchFromFigma}
+                        disabled={isLoadingFigma}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        {isLoadingFigma ? '⏳' : '🔗'} Conectar
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {figmaData && (
+                    <Alert className="bg-green-900/30 border-green-700">
+                      <AlertTitle className="text-green-400">✅ Conectado a Figma</AlertTitle>
+                      <AlertDescription className="text-green-300">
+                        Archivo: {figmaData.file?.name}
+                        {figmaData.node?.textContent?.length > 0 && (
+                          <span className="block mt-1">
+                            {figmaData.node.textContent.length} textos encontrados
+                          </span>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="manual">
+                  <p className="text-sm text-slate-500 mb-2">
+                    Pega la información del diseño
+                  </p>
+                </TabsContent>
+              </Tabs>
+
               <Textarea
                 placeholder="Ejemplo:
 Título: Oferta Especial
 Precio: $89.99
 Descripción: Producto premium de alta calidad
 Fecha: 15 de marzo 2024"
-                className="min-h-[200px] bg-slate-900 border-slate-600 text-white"
+                className="min-h-[150px] bg-slate-900 border-slate-600 text-white"
                 value={figmaText}
                 onChange={(e) => setFigmaText(e.target.value)}
               />
+              
               <div>
                 <label className="block text-sm text-slate-400 mb-2">
-                  Imagen de Figma (opcional)
+                  Imagen de Figma {figmaImagePreview && figmaData?.node?.imageUrl && '(desde API)'}
                 </label>
                 <Input
                   type="file"
@@ -290,16 +487,17 @@ Fecha: 15 de marzo 2024"
             size="lg"
             className="px-12 py-6 text-lg bg-blue-600 hover:bg-blue-700"
             onClick={handleCompare}
-            disabled={isComparing || (!cardText && !figmaText)}
+            disabled={isComparing || (!cardText && !figmaText && !imagePreview)}
           >
             {isComparing ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>
-                Comparando...
+                {imagePreview && figmaImagePreview ? 'Analizando con IA...' : 'Comparando...'}
               </>
             ) : (
               <>
                 🔍 Comparar y Generar Reporte
+                {imagePreview && figmaImagePreview && ' (con IA)'}
               </>
             )}
           </Button>
@@ -312,6 +510,11 @@ Fecha: 15 de marzo 2024"
               <CardTitle className="text-white flex items-center justify-between">
                 <span>📊 Reporte de Correcciones</span>
                 <div className="flex gap-2">
+                  {aiComparison && (
+                    <Badge variant="default" className="bg-purple-600">
+                      {aiComparison.match_percentage}% coincidencia
+                    </Badge>
+                  )}
                   <Badge variant={corrections.filter(c => c.severity === 'error').length > 0 ? 'destructive' : 'default'}>
                     {corrections.filter(c => c.severity === 'error').length} errores
                   </Badge>
@@ -320,6 +523,11 @@ Fecha: 15 de marzo 2024"
                   </Badge>
                 </div>
               </CardTitle>
+              {aiComparison?.summary && (
+                <CardDescription className="text-slate-300 mt-2">
+                  {aiComparison.summary}
+                </CardDescription>
+              )}
             </CardHeader>
             <CardContent>
               {corrections.length === 0 ? (
@@ -349,7 +557,7 @@ Fecha: 15 de marzo 2024"
                           ? 'text-yellow-400'
                           : 'text-blue-400'
                       }`}>
-                        {getSeverityIcon(correction.severity)} Campo: {correction.field}
+                        {getSeverityIcon(correction.severity)} {getCategoryIcon(correction.category)} {correction.field}
                       </AlertTitle>
                       <AlertDescription className="mt-2 space-y-1">
                         <div className="text-slate-300">
@@ -357,9 +565,15 @@ Fecha: 15 de marzo 2024"
                           <span className="text-green-400">{correction.expected}</span>
                         </div>
                         <div className="text-slate-300">
-                          <span className="font-semibold">Encontrado (Tarjeta):</span>{' '}
+                          <span className="font-semibold">Encontrado (Pieza):</span>{' '}
                           <span className="text-red-400">{correction.found}</span>
                         </div>
+                        {correction.suggestion && (
+                          <div className="text-slate-300 mt-2 p-2 bg-slate-800 rounded">
+                            <span className="font-semibold">💡 Sugerencia:</span>{' '}
+                            <span className="text-blue-300">{correction.suggestion}</span>
+                          </div>
+                        )}
                       </AlertDescription>
                     </Alert>
                   ))}
@@ -396,23 +610,56 @@ Fecha: 15 de marzo 2024"
               )}
 
               {/* Export Button */}
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end gap-4">
                 <Button
                   variant="outline"
                   onClick={() => {
-                    const report = corrections.map(c => 
-                      `${getSeverityIcon(c.severity)} ${c.field}\n  Esperado: ${c.expected}\n  Encontrado: ${c.found}`
-                    ).join('\n\n');
+                    const report = [
+                      'REPORTE DE CORRECCIONES QA',
+                      '=' .repeat(40),
+                      '',
+                      aiComparison ? `Coincidencia: ${aiComparison.match_percentage}%` : '',
+                      aiComparison?.summary ? `Resumen: ${aiComparison.summary}` : '',
+                      '',
+                      'CORRECCIONES:',
+                      '',
+                      ...corrections.map(c => 
+                        `${getSeverityIcon(c.severity)} [${c.category || 'TEXTO'}] ${c.field}\n  Esperado: ${c.expected}\n  Encontrado: ${c.found}${c.suggestion ? `\n  Sugerencia: ${c.suggestion}` : ''}`
+                      ),
+                    ].filter(Boolean).join('\n');
                     
-                    const blob = new Blob([`REPORTE DE CORRECCIONES QA\n${'='.repeat(40)}\n\n${report || 'Sin correcciones - Todo OK'}`], { type: 'text/plain' });
+                    const blob = new Blob([report || 'Sin correcciones - Todo OK'], { type: 'text/plain' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'reporte-qa.txt';
+                    a.download = `reporte-qa-${new Date().toISOString().split('T')[0]}.txt`;
                     a.click();
                   }}
                 >
-                  📥 Exportar Reporte
+                  📥 Exportar TXT
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const jsonReport = {
+                      date: new Date().toISOString(),
+                      matchPercentage: aiComparison?.match_percentage || null,
+                      summary: aiComparison?.summary || null,
+                      totalCorrections: corrections.length,
+                      errors: corrections.filter(c => c.severity === 'error').length,
+                      warnings: corrections.filter(c => c.severity === 'warning').length,
+                      corrections: corrections,
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(jsonReport, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `reporte-qa-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                  }}
+                >
+                  📥 Exportar JSON
                 </Button>
               </div>
             </CardContent>
