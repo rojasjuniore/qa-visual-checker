@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, Link2, Sparkles, CheckCircle2, AlertTriangle, 
-  Info, Download, Trash2, Zap, Eye, FileJson, FileText,
+  Info, Trash2, Zap, Eye, FileJson, FileText,
   Palette, Type, Layout, Box, Ruler, Search, X, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,13 +14,20 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
+// Brand Colors
+const COLORS = {
+  black: '#000000',
+  blue: '#0042A9',
+  orange: '#F45325',
+  white: '#FFFFFF',
+};
+
 interface Correction {
   field: string;
   expected: string;
   found: string;
   severity: 'error' | 'warning' | 'info';
   category?: string;
-  location?: string;
   suggestion?: string;
 }
 
@@ -223,12 +230,11 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-[100dvh] bg-[#0a0a0f] text-white overflow-x-hidden">
+    <main className="min-h-[100dvh] text-white overflow-x-hidden" style={{ backgroundColor: COLORS.black }}>
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-violet-600/20 rounded-full blur-[128px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-600/15 rounded-full blur-[128px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-fuchsia-600/10 rounded-full blur-[128px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[128px] animate-pulse" style={{ backgroundColor: `${COLORS.blue}20` }} />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full blur-[128px] animate-pulse" style={{ backgroundColor: `${COLORS.orange}15`, animationDelay: '1s' }} />
       </div>
 
       {/* Grid Pattern Overlay */}
@@ -242,27 +248,33 @@ export default function Home() {
           className="text-center mb-16"
         >
           <motion.div 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
+            style={{ backgroundColor: `${COLORS.blue}15`, borderColor: `${COLORS.blue}40` }}
             whileHover={{ scale: 1.02 }}
           >
-            <Sparkles className="w-4 h-4 text-violet-400" />
-            <span className="text-sm text-white/70">Powered by AI Vision</span>
+            <Sparkles className="w-4 h-4" style={{ color: COLORS.orange }} />
+            <span className="text-sm" style={{ color: `${COLORS.white}99` }}>Powered by AI Vision</span>
           </motion.div>
           
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4">
-            <span className="bg-gradient-to-r from-white via-white to-white/50 bg-clip-text text-transparent">QA Visual</span>
+            <span style={{ color: COLORS.white }}>QA Visual</span>
             <br />
-            <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">Checker</span>
+            <span style={{ 
+              background: `linear-gradient(135deg, ${COLORS.blue}, ${COLORS.orange})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>Checker</span>
           </h1>
           
-          <p className="text-lg text-white/50 max-w-xl mx-auto">
+          <p className="text-lg max-w-xl mx-auto" style={{ color: `${COLORS.white}70` }}>
             Compara piezas gráficas con diseños de Figma usando inteligencia artificial
           </p>
 
           <motion.button
             onClick={() => setShowApiConfig(!showApiConfig)}
-            className="mt-6 text-sm text-white/40 hover:text-white/70 transition-colors flex items-center gap-2 mx-auto"
-            whileHover={{ scale: 1.02 }}
+            className="mt-6 text-sm flex items-center gap-2 mx-auto transition-colors"
+            style={{ color: `${COLORS.white}50` }}
+            whileHover={{ scale: 1.02, color: COLORS.white }}
             whileTap={{ scale: 0.98 }}
           >
             <Zap className="w-4 h-4" />
@@ -277,23 +289,28 @@ export default function Home() {
                 exit={{ opacity: 0, height: 0 }}
                 className="mt-6 max-w-2xl mx-auto overflow-hidden"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6 rounded-2xl bg-white/5 border border-white/10">
+                <div 
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6 rounded-2xl border"
+                  style={{ backgroundColor: `${COLORS.white}05`, borderColor: `${COLORS.white}10` }}
+                >
                   <div>
-                    <label className="block text-sm text-white/50 mb-2">Figma Token</label>
+                    <label className="block text-sm mb-2" style={{ color: `${COLORS.white}60` }}>Figma Token</label>
                     <Input
                       type="password"
                       placeholder="figd_xxxx..."
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                      className="border text-white placeholder:opacity-30"
+                      style={{ backgroundColor: `${COLORS.white}05`, borderColor: `${COLORS.white}15` }}
                       value={figmaToken}
                       onChange={(e) => setFigmaToken(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/50 mb-2">OpenAI API Key</label>
+                    <label className="block text-sm mb-2" style={{ color: `${COLORS.white}60` }}>OpenAI API Key</label>
                     <Input
                       type="password"
                       placeholder="sk-xxxx..."
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                      className="border text-white placeholder:opacity-30"
+                      style={{ backgroundColor: `${COLORS.white}05`, borderColor: `${COLORS.white}15` }}
                       value={openaiKey}
                       onChange={(e) => setOpenaiKey(e.target.value)}
                     />
@@ -311,25 +328,33 @@ export default function Home() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="group bg-white/[0.03] border-white/10 backdrop-blur-xl overflow-hidden hover:bg-white/[0.05] hover:border-orange-500/30 transition-all duration-500"
-            whileHover={{ y: -4 }}
+            className="group border backdrop-blur-xl overflow-hidden transition-all duration-500"
+            style={{ 
+              backgroundColor: `${COLORS.white}03`,
+              borderColor: `${COLORS.white}10`
+            }}
+            whileHover={{ y: -4, borderColor: `${COLORS.orange}50` }}
           >
-            <CardHeader className="border-b border-white/5 relative overflow-hidden">
-              {/* Animated glow on hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/10 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="border-b relative overflow-hidden" style={{ borderColor: `${COLORS.white}05` }}>
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ background: `linear-gradient(90deg, transparent, ${COLORS.orange}10, transparent)` }}
+              />
               <CardTitle className="text-2xl font-bold flex items-center gap-3 relative">
                 <motion.div 
-                  className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/25"
+                  className="p-3 rounded-xl shadow-lg"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${COLORS.orange}, ${COLORS.orange}CC)`,
+                    boxShadow: `0 8px 24px ${COLORS.orange}40`
+                  }}
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Eye className="w-6 h-6 text-white" />
+                  <Eye className="w-6 h-6" style={{ color: COLORS.white }} />
                 </motion.div>
-                <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-white bg-clip-text text-transparent drop-shadow-lg">
-                  Pieza Gráfica
-                </span>
+                <span style={{ color: COLORS.white }}>Pieza Gráfica</span>
               </CardTitle>
-              <CardDescription className="text-white/60 text-base mt-2">
+              <CardDescription style={{ color: `${COLORS.white}60` }} className="text-base mt-2">
                 Sube la imagen o pega el texto de la pieza actual
               </CardDescription>
             </CardHeader>
@@ -340,22 +365,15 @@ export default function Home() {
                 onDragLeave={() => setDragOver(null)}
                 onDrop={(e) => handleDrop(e, 'piece')}
                 onClick={() => pieceInputRef.current?.click()}
-                className={`relative h-56 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 overflow-hidden ${
-                  dragOver === 'piece' 
-                    ? 'border-orange-500 bg-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.3)]' 
-                    : imagePreview 
-                      ? 'border-transparent' 
-                      : 'border-white/20 hover:border-orange-400/50 hover:bg-white/[0.03] bg-white/[0.02]'
-                }`}
-                whileHover={{ scale: 1.02 }}
+                className="relative h-56 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 overflow-hidden"
+                style={{
+                  borderColor: dragOver === 'piece' ? COLORS.orange : imagePreview ? 'transparent' : `${COLORS.white}20`,
+                  backgroundColor: dragOver === 'piece' ? `${COLORS.orange}20` : `${COLORS.white}02`,
+                  boxShadow: dragOver === 'piece' ? `0 0 30px ${COLORS.orange}30` : 'none'
+                }}
+                whileHover={{ scale: 1.02, borderColor: `${COLORS.orange}50` }}
                 whileTap={{ scale: 0.98 }}
-                animate={dragOver === 'piece' ? { scale: [1, 1.02, 1] } : {}}
-                transition={{ duration: 0.3 }}
               >
-                {/* Animated border gradient */}
-                {!imagePreview && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/20 to-orange-500/0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
-                )}
                 <input
                   ref={pieceInputRef}
                   type="file"
@@ -375,13 +393,17 @@ export default function Home() {
                     />
                     <motion.button
                       onClick={(e) => { e.stopPropagation(); setImagePreview(null); }}
-                      className="absolute top-3 right-3 p-2.5 rounded-full bg-black/60 hover:bg-red-500 transition-colors shadow-lg"
-                      whileHover={{ scale: 1.15, rotate: 90 }}
+                      className="absolute top-3 right-3 p-2.5 rounded-full transition-colors shadow-lg"
+                      style={{ backgroundColor: `${COLORS.black}90` }}
+                      whileHover={{ scale: 1.15, rotate: 90, backgroundColor: COLORS.orange }}
                       whileTap={{ scale: 0.9 }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" style={{ color: COLORS.white }} />
                     </motion.button>
-                    <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-green-500/90 text-xs font-medium flex items-center gap-1.5">
+                    <div 
+                      className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5"
+                      style={{ backgroundColor: COLORS.orange, color: COLORS.white }}
+                    >
                       <CheckCircle2 className="w-3 h-3" />
                       Imagen cargada
                     </div>
@@ -393,27 +415,32 @@ export default function Home() {
                     transition={{ repeat: dragOver === 'piece' ? Infinity : 0, duration: 0.5 }}
                   >
                     <motion.div
-                      className="p-4 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/20"
+                      className="p-4 rounded-2xl border"
+                      style={{ 
+                        backgroundColor: `${COLORS.orange}15`,
+                        borderColor: `${COLORS.orange}30`
+                      }}
                       whileHover={{ rotate: [0, -10, 10, 0] }}
                       transition={{ duration: 0.5 }}
                     >
-                      <Upload className="w-8 h-8 text-orange-400" />
+                      <Upload className="w-8 h-8" style={{ color: COLORS.orange }} />
                     </motion.div>
                     <div className="text-center">
-                      <p className="text-white/70 font-medium">Arrastra tu imagen aquí</p>
-                      <p className="text-white/40 text-sm mt-1">o haz clic para seleccionar</p>
+                      <p className="font-medium" style={{ color: `${COLORS.white}80` }}>Arrastra tu imagen aquí</p>
+                      <p className="text-sm mt-1" style={{ color: `${COLORS.white}40` }}>o haz clic para seleccionar</p>
                     </div>
                   </motion.div>
                 )}
               </motion.div>
 
-              <motion.div
-                whileFocus={{ scale: 1.01 }}
-                className="relative"
-              >
+              <motion.div className="relative">
                 <Textarea
                   placeholder="O pega el texto de la pieza aquí:&#10;Título: Oferta Especial&#10;Precio: $99.99"
-                  className="min-h-[120px] bg-white/[0.02] border-white/10 text-white placeholder:text-white/30 resize-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                  className="min-h-[120px] border text-white resize-none transition-all"
+                  style={{ 
+                    backgroundColor: `${COLORS.white}02`,
+                    borderColor: `${COLORS.white}15`
+                  }}
                   value={cardText}
                   onChange={(e) => setCardText(e.target.value)}
                 />
@@ -421,7 +448,8 @@ export default function Home() {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute top-2 right-2 px-2 py-1 rounded-md bg-orange-500/20 text-orange-300 text-xs"
+                    className="absolute top-2 right-2 px-2 py-1 rounded-md text-xs"
+                    style={{ backgroundColor: `${COLORS.orange}30`, color: COLORS.orange }}
                   >
                     {cardText.split('\n').filter(l => l.trim()).length} líneas
                   </motion.div>
@@ -435,47 +463,71 @@ export default function Home() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="group bg-white/[0.03] border-white/10 backdrop-blur-xl overflow-hidden hover:bg-white/[0.05] hover:border-violet-500/30 transition-all duration-500"
-            whileHover={{ y: -4 }}
+            className="group border backdrop-blur-xl overflow-hidden transition-all duration-500"
+            style={{ 
+              backgroundColor: `${COLORS.white}03`,
+              borderColor: `${COLORS.white}10`
+            }}
+            whileHover={{ y: -4, borderColor: `${COLORS.blue}50` }}
           >
-            <CardHeader className="border-b border-white/5 relative overflow-hidden">
-              {/* Animated glow on hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/10 to-violet-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="border-b relative overflow-hidden" style={{ borderColor: `${COLORS.white}05` }}>
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ background: `linear-gradient(90deg, transparent, ${COLORS.blue}10, transparent)` }}
+              />
               <CardTitle className="text-2xl font-bold flex items-center gap-3 relative">
                 <motion.div 
-                  className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/25"
+                  className="p-3 rounded-xl shadow-lg"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${COLORS.blue}, ${COLORS.blue}CC)`,
+                    boxShadow: `0 8px 24px ${COLORS.blue}40`
+                  }}
                   whileHover={{ scale: 1.1, rotate: -5 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Palette className="w-6 h-6 text-white" />
+                  <Palette className="w-6 h-6" style={{ color: COLORS.white }} />
                 </motion.div>
-                <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-white bg-clip-text text-transparent drop-shadow-lg">
-                  Diseño Figma
-                </span>
+                <span style={{ color: COLORS.white }}>Diseño Figma</span>
               </CardTitle>
-              <CardDescription className="text-white/60 text-base mt-2">
+              <CardDescription style={{ color: `${COLORS.white}60` }} className="text-base mt-2">
                 Conecta con Figma o sube la referencia
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="w-full grid grid-cols-2 bg-white/5 p-1 rounded-xl">
-                  <TabsTrigger value="manual" className="rounded-lg data-[state=active]:bg-white/10">Manual</TabsTrigger>
-                  <TabsTrigger value="figma" className="rounded-lg data-[state=active]:bg-white/10">Figma API</TabsTrigger>
+                <TabsList 
+                  className="w-full grid grid-cols-2 p-1 rounded-xl"
+                  style={{ backgroundColor: `${COLORS.white}05` }}
+                >
+                  <TabsTrigger 
+                    value="manual" 
+                    className="rounded-lg data-[state=active]:text-white"
+                    style={{ '--active-bg': `${COLORS.white}10` } as any}
+                  >
+                    Manual
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="figma" 
+                    className="rounded-lg data-[state=active]:text-white"
+                  >
+                    Figma API
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="figma" className="mt-4 space-y-4">
                   <div className="flex gap-2">
                     <Input
                       placeholder="https://figma.com/design/..."
-                      className="bg-white/[0.02] border-white/10 text-white placeholder:text-white/20 flex-1"
+                      className="border text-white flex-1"
+                      style={{ backgroundColor: `${COLORS.white}02`, borderColor: `${COLORS.white}15` }}
                       value={figmaUrl}
                       onChange={(e) => setFigmaUrl(e.target.value)}
                     />
                     <Button 
                       onClick={fetchFromFigma}
                       disabled={isLoadingFigma || !figmaUrl}
-                      className="bg-violet-600 hover:bg-violet-500 px-6"
+                      className="px-6"
+                      style={{ backgroundColor: COLORS.blue }}
                     >
                       {isLoadingFigma ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
                     </Button>
@@ -484,19 +536,20 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3"
+                      className="p-4 rounded-xl flex items-center gap-3"
+                      style={{ backgroundColor: `${COLORS.blue}15`, border: `1px solid ${COLORS.blue}30` }}
                     >
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                      <CheckCircle2 className="w-5 h-5" style={{ color: COLORS.blue }} />
                       <div>
-                        <p className="text-green-400 font-medium">{figmaData.file?.name}</p>
-                        <p className="text-white/50 text-sm">{figmaData.node?.textContent?.length || 0} textos encontrados</p>
+                        <p className="font-medium" style={{ color: COLORS.blue }}>{figmaData.file?.name}</p>
+                        <p className="text-sm" style={{ color: `${COLORS.white}50` }}>{figmaData.node?.textContent?.length || 0} textos encontrados</p>
                       </div>
                     </motion.div>
                   )}
                 </TabsContent>
                 
                 <TabsContent value="manual" className="mt-4">
-                  <p className="text-white/30 text-sm mb-2">Sube o pega la referencia</p>
+                  <p className="text-sm mb-2" style={{ color: `${COLORS.white}40` }}>Sube o pega la referencia</p>
                 </TabsContent>
               </Tabs>
 
@@ -506,22 +559,15 @@ export default function Home() {
                 onDragLeave={() => setDragOver(null)}
                 onDrop={(e) => handleDrop(e, 'figma')}
                 onClick={() => figmaInputRef.current?.click()}
-                className={`relative h-56 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 overflow-hidden ${
-                  dragOver === 'figma' 
-                    ? 'border-violet-500 bg-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.3)]' 
-                    : figmaImagePreview 
-                      ? 'border-transparent' 
-                      : 'border-white/20 hover:border-violet-400/50 hover:bg-white/[0.03] bg-white/[0.02]'
-                }`}
-                whileHover={{ scale: 1.02 }}
+                className="relative h-56 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 overflow-hidden"
+                style={{
+                  borderColor: dragOver === 'figma' ? COLORS.blue : figmaImagePreview ? 'transparent' : `${COLORS.white}20`,
+                  backgroundColor: dragOver === 'figma' ? `${COLORS.blue}20` : `${COLORS.white}02`,
+                  boxShadow: dragOver === 'figma' ? `0 0 30px ${COLORS.blue}30` : 'none'
+                }}
+                whileHover={{ scale: 1.02, borderColor: `${COLORS.blue}50` }}
                 whileTap={{ scale: 0.98 }}
-                animate={dragOver === 'figma' ? { scale: [1, 1.02, 1] } : {}}
-                transition={{ duration: 0.3 }}
               >
-                {/* Animated border gradient */}
-                {!figmaImagePreview && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500/0 via-violet-500/20 to-violet-500/0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
-                )}
                 <input
                   ref={figmaInputRef}
                   type="file"
@@ -541,13 +587,17 @@ export default function Home() {
                     />
                     <motion.button
                       onClick={(e) => { e.stopPropagation(); setFigmaImagePreview(null); }}
-                      className="absolute top-3 right-3 p-2.5 rounded-full bg-black/60 hover:bg-red-500 transition-colors shadow-lg"
-                      whileHover={{ scale: 1.15, rotate: 90 }}
+                      className="absolute top-3 right-3 p-2.5 rounded-full transition-colors shadow-lg"
+                      style={{ backgroundColor: `${COLORS.black}90` }}
+                      whileHover={{ scale: 1.15, rotate: 90, backgroundColor: COLORS.orange }}
                       whileTap={{ scale: 0.9 }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" style={{ color: COLORS.white }} />
                     </motion.button>
-                    <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-violet-500/90 text-xs font-medium flex items-center gap-1.5">
+                    <div 
+                      className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5"
+                      style={{ backgroundColor: COLORS.blue, color: COLORS.white }}
+                    >
                       <CheckCircle2 className="w-3 h-3" />
                       Referencia cargada
                     </div>
@@ -559,27 +609,32 @@ export default function Home() {
                     transition={{ repeat: dragOver === 'figma' ? Infinity : 0, duration: 0.5 }}
                   >
                     <motion.div
-                      className="p-4 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20"
+                      className="p-4 rounded-2xl border"
+                      style={{ 
+                        backgroundColor: `${COLORS.blue}15`,
+                        borderColor: `${COLORS.blue}30`
+                      }}
                       whileHover={{ rotate: [0, -10, 10, 0] }}
                       transition={{ duration: 0.5 }}
                     >
-                      <Upload className="w-8 h-8 text-violet-400" />
+                      <Upload className="w-8 h-8" style={{ color: COLORS.blue }} />
                     </motion.div>
                     <div className="text-center">
-                      <p className="text-white/70 font-medium">Arrastra tu imagen aquí</p>
-                      <p className="text-white/40 text-sm mt-1">o haz clic para seleccionar</p>
+                      <p className="font-medium" style={{ color: `${COLORS.white}80` }}>Arrastra tu imagen aquí</p>
+                      <p className="text-sm mt-1" style={{ color: `${COLORS.white}40` }}>o haz clic para seleccionar</p>
                     </div>
                   </motion.div>
                 )}
               </motion.div>
 
-              <motion.div
-                whileFocus={{ scale: 1.01 }}
-                className="relative"
-              >
+              <motion.div className="relative">
                 <Textarea
                   placeholder="Texto del diseño Figma:&#10;Título: Oferta Especial&#10;Precio: $89.99"
-                  className="min-h-[120px] bg-white/[0.02] border-white/10 text-white placeholder:text-white/30 resize-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                  className="min-h-[120px] border text-white resize-none transition-all"
+                  style={{ 
+                    backgroundColor: `${COLORS.white}02`,
+                    borderColor: `${COLORS.white}15`
+                  }}
                   value={figmaText}
                   onChange={(e) => setFigmaText(e.target.value)}
                 />
@@ -587,7 +642,8 @@ export default function Home() {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute top-2 right-2 px-2 py-1 rounded-md bg-violet-500/20 text-violet-300 text-xs"
+                    className="absolute top-2 right-2 px-2 py-1 rounded-md text-xs"
+                    style={{ backgroundColor: `${COLORS.blue}30`, color: COLORS.blue }}
                   >
                     {figmaText.split('\n').filter(l => l.trim()).length} líneas
                   </motion.div>
@@ -611,16 +667,34 @@ export default function Home() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <div className={`flex items-center gap-2 ${imagePreview ? 'text-green-400' : 'text-white/30'}`}>
-              <div className={`w-2 h-2 rounded-full ${imagePreview ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
+            <div className="flex items-center gap-2" style={{ color: imagePreview ? COLORS.orange : `${COLORS.white}40` }}>
+              <div 
+                className="w-2 h-2 rounded-full"
+                style={{ 
+                  backgroundColor: imagePreview ? COLORS.orange : `${COLORS.white}30`,
+                  boxShadow: imagePreview ? `0 0 8px ${COLORS.orange}` : 'none'
+                }}
+              />
               Pieza
             </div>
-            <div className={`flex items-center gap-2 ${figmaImagePreview ? 'text-green-400' : 'text-white/30'}`}>
-              <div className={`w-2 h-2 rounded-full ${figmaImagePreview ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
+            <div className="flex items-center gap-2" style={{ color: figmaImagePreview ? COLORS.blue : `${COLORS.white}40` }}>
+              <div 
+                className="w-2 h-2 rounded-full"
+                style={{ 
+                  backgroundColor: figmaImagePreview ? COLORS.blue : `${COLORS.white}30`,
+                  boxShadow: figmaImagePreview ? `0 0 8px ${COLORS.blue}` : 'none'
+                }}
+              />
               Figma
             </div>
-            <div className={`flex items-center gap-2 ${(imagePreview && figmaImagePreview) ? 'text-violet-400' : 'text-white/30'}`}>
-              <div className={`w-2 h-2 rounded-full ${(imagePreview && figmaImagePreview) ? 'bg-violet-400 animate-pulse' : 'bg-white/20'}`} />
+            <div className="flex items-center gap-2" style={{ color: (imagePreview && figmaImagePreview) ? COLORS.orange : `${COLORS.white}40` }}>
+              <div 
+                className="w-2 h-2 rounded-full"
+                style={{ 
+                  backgroundColor: (imagePreview && figmaImagePreview) ? COLORS.orange : `${COLORS.white}30`,
+                  boxShadow: (imagePreview && figmaImagePreview) ? `0 0 8px ${COLORS.orange}` : 'none'
+                }}
+              />
               IA Ready
             </div>
           </motion.div>
@@ -632,42 +706,38 @@ export default function Home() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             animate={(imagePreview && figmaImagePreview && !isComparing) ? { 
-              boxShadow: ['0 0 20px rgba(139,92,246,0.3)', '0 0 40px rgba(139,92,246,0.5)', '0 0 20px rgba(139,92,246,0.3)']
+              boxShadow: [`0 0 20px ${COLORS.blue}30`, `0 0 40px ${COLORS.blue}50`, `0 0 20px ${COLORS.blue}30`]
             } : {}}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            {/* Animated Background */}
             <motion.div 
-              className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600"
-              animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
-              style={{ backgroundSize: '200% 200%' }}
+              className="absolute inset-0"
+              style={{ background: `linear-gradient(135deg, ${COLORS.blue}, ${COLORS.orange})` }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 blur-2xl opacity-50 group-hover:opacity-80 transition-opacity" />
+            <div 
+              className="absolute inset-0 blur-2xl opacity-50 group-hover:opacity-80 transition-opacity"
+              style={{ background: `linear-gradient(135deg, ${COLORS.blue}, ${COLORS.orange})` }}
+            />
             
             {/* Sparkle effects */}
             {!isComparing && (
               <>
                 <motion.div 
-                  className="absolute top-2 left-4 w-1 h-1 bg-white rounded-full"
+                  className="absolute top-2 left-4 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: COLORS.white }}
                   animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 0 }}
                 />
                 <motion.div 
-                  className="absolute bottom-3 right-6 w-1.5 h-1.5 bg-white rounded-full"
+                  className="absolute bottom-3 right-6 w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: COLORS.white }}
                   animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                />
-                <motion.div 
-                  className="absolute top-4 right-10 w-1 h-1 bg-white rounded-full"
-                  animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 1 }}
                 />
               </>
             )}
             
-            {/* Button Content */}
-            <span className="relative flex items-center gap-3">
+            <span className="relative flex items-center gap-3" style={{ color: COLORS.white }}>
               {isComparing ? (
                 <>
                   <Loader2 className="w-6 h-6 animate-spin" />
@@ -689,7 +759,8 @@ export default function Home() {
 
           {(imagePreview && figmaImagePreview) && (
             <motion.p 
-              className="text-white/40 text-sm"
+              className="text-sm"
+              style={{ color: `${COLORS.white}50` }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
@@ -707,31 +778,47 @@ export default function Home() {
               exit={{ opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25 }}
             >
-              <MotionCard className="bg-white/[0.03] border-white/10 backdrop-blur-xl overflow-hidden">
-                <CardHeader className="border-b border-white/5">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20">
-                        <Search className="w-5 h-5 text-cyan-400" />
+              <MotionCard 
+                className="border backdrop-blur-xl overflow-hidden"
+                style={{ backgroundColor: `${COLORS.white}03`, borderColor: `${COLORS.white}10` }}
+              >
+                <CardHeader className="border-b" style={{ borderColor: `${COLORS.white}05` }}>
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <CardTitle className="text-2xl flex items-center gap-3" style={{ color: COLORS.white }}>
+                      <div 
+                        className="p-2 rounded-xl"
+                        style={{ backgroundColor: `${COLORS.blue}20`, border: `1px solid ${COLORS.blue}30` }}
+                      >
+                        <Search className="w-5 h-5" style={{ color: COLORS.blue }} />
                       </div>
                       Reporte de QA
                     </CardTitle>
                     <div className="flex items-center gap-3">
                       {aiComparison && (
-                        <Badge className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 border-violet-500/30 text-violet-300 px-4 py-2">
+                        <Badge 
+                          className="px-4 py-2"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${COLORS.blue}20, ${COLORS.orange}20)`,
+                            borderColor: `${COLORS.blue}30`,
+                            color: COLORS.white
+                          }}
+                        >
                           {aiComparison.match_percentage}% match
                         </Badge>
                       )}
-                      <Badge variant={corrections.filter(c => c.severity === 'error').length > 0 ? 'destructive' : 'default'} className="px-4 py-2">
+                      <Badge 
+                        className="px-4 py-2"
+                        style={{ 
+                          backgroundColor: corrections.filter(c => c.severity === 'error').length > 0 ? `${COLORS.orange}20` : `${COLORS.blue}20`,
+                          color: corrections.filter(c => c.severity === 'error').length > 0 ? COLORS.orange : COLORS.blue
+                        }}
+                      >
                         {corrections.filter(c => c.severity === 'error').length} errores
-                      </Badge>
-                      <Badge variant="secondary" className="px-4 py-2">
-                        {corrections.filter(c => c.severity === 'warning').length} warnings
                       </Badge>
                     </div>
                   </div>
                   {aiComparison?.summary && (
-                    <CardDescription className="text-white/50 mt-3 text-base">
+                    <CardDescription className="mt-3 text-base" style={{ color: `${COLORS.white}60` }}>
                       {aiComparison.summary}
                     </CardDescription>
                   )}
@@ -749,10 +836,10 @@ export default function Home() {
                         transition={{ repeat: Infinity, duration: 2 }}
                         className="inline-block"
                       >
-                        <CheckCircle2 className="w-20 h-20 text-green-400 mx-auto mb-4" />
+                        <CheckCircle2 className="w-20 h-20 mx-auto mb-4" style={{ color: COLORS.blue }} />
                       </motion.div>
-                      <h3 className="text-2xl font-bold text-green-400 mb-2">Todo correcto</h3>
-                      <p className="text-white/50">No se encontraron diferencias entre la pieza y el diseño</p>
+                      <h3 className="text-2xl font-bold mb-2" style={{ color: COLORS.blue }}>Todo correcto</h3>
+                      <p style={{ color: `${COLORS.white}50` }}>No se encontraron diferencias entre la pieza y el diseño</p>
                     </motion.div>
                   ) : (
                     <div className="space-y-4">
@@ -762,57 +849,61 @@ export default function Home() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className={`p-5 rounded-2xl border backdrop-blur-sm ${
-                            correction.severity === 'error'
-                              ? 'bg-red-500/10 border-red-500/20'
-                              : correction.severity === 'warning'
-                              ? 'bg-yellow-500/10 border-yellow-500/20'
-                              : 'bg-blue-500/10 border-blue-500/20'
-                          }`}
+                          className="p-5 rounded-2xl border backdrop-blur-sm"
+                          style={{
+                            backgroundColor: correction.severity === 'error' ? `${COLORS.orange}10` : `${COLORS.blue}10`,
+                            borderColor: correction.severity === 'error' ? `${COLORS.orange}25` : `${COLORS.blue}25`
+                          }}
                         >
                           <div className="flex items-start gap-4">
-                            <div className={`p-2 rounded-xl ${
-                              correction.severity === 'error'
-                                ? 'bg-red-500/20'
-                                : correction.severity === 'warning'
-                                ? 'bg-yellow-500/20'
-                                : 'bg-blue-500/20'
-                            }`}>
+                            <div 
+                              className="p-2 rounded-xl"
+                              style={{ backgroundColor: correction.severity === 'error' ? `${COLORS.orange}20` : `${COLORS.blue}20` }}
+                            >
                               {correction.severity === 'error' ? (
-                                <X className="w-5 h-5 text-red-400" />
+                                <X className="w-5 h-5" style={{ color: COLORS.orange }} />
                               ) : correction.severity === 'warning' ? (
-                                <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                                <AlertTriangle className="w-5 h-5" style={{ color: COLORS.orange }} />
                               ) : (
-                                <Info className="w-5 h-5 text-blue-400" />
+                                <Info className="w-5 h-5" style={{ color: COLORS.blue }} />
                               )}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 {getCategoryIcon(correction.category)}
-                                <span className={`font-semibold ${
-                                  correction.severity === 'error' ? 'text-red-400' :
-                                  correction.severity === 'warning' ? 'text-yellow-400' : 'text-blue-400'
-                                }`}>
+                                <span 
+                                  className="font-semibold"
+                                  style={{ color: correction.severity === 'error' ? COLORS.orange : COLORS.blue }}
+                                >
                                   {correction.field}
                                 </span>
                                 {correction.category && (
-                                  <Badge variant="outline" className="text-xs">{correction.category}</Badge>
+                                  <Badge 
+                                    variant="outline" 
+                                    className="text-xs"
+                                    style={{ borderColor: `${COLORS.white}20`, color: `${COLORS.white}60` }}
+                                  >
+                                    {correction.category}
+                                  </Badge>
                                 )}
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                 <div>
-                                  <span className="text-white/40">Esperado:</span>
-                                  <p className="text-green-400 mt-1">{correction.expected}</p>
+                                  <span style={{ color: `${COLORS.white}50` }}>Esperado:</span>
+                                  <p className="mt-1" style={{ color: COLORS.blue }}>{correction.expected}</p>
                                 </div>
                                 <div>
-                                  <span className="text-white/40">Encontrado:</span>
-                                  <p className="text-red-400 mt-1">{correction.found}</p>
+                                  <span style={{ color: `${COLORS.white}50` }}>Encontrado:</span>
+                                  <p className="mt-1" style={{ color: COLORS.orange }}>{correction.found}</p>
                                 </div>
                               </div>
                               {correction.suggestion && (
-                                <div className="mt-3 p-3 rounded-xl bg-white/5">
-                                  <span className="text-white/40 text-sm">Sugerencia: </span>
-                                  <span className="text-cyan-400 text-sm">{correction.suggestion}</span>
+                                <div 
+                                  className="mt-3 p-3 rounded-xl"
+                                  style={{ backgroundColor: `${COLORS.white}05` }}
+                                >
+                                  <span className="text-sm" style={{ color: `${COLORS.white}50` }}>Sugerencia: </span>
+                                  <span className="text-sm" style={{ color: COLORS.blue }}>{correction.suggestion}</span>
                                 </div>
                               )}
                             </div>
@@ -824,21 +915,21 @@ export default function Home() {
 
                   {/* Visual Comparison */}
                   {(imagePreview && figmaImagePreview) && (
-                    <div className="mt-8 pt-8 border-t border-white/10">
-                      <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                        <Eye className="w-5 h-5 text-white/50" />
+                    <div className="mt-8 pt-8" style={{ borderTop: `1px solid ${COLORS.white}10` }}>
+                      <h3 className="text-lg font-semibold mb-6 flex items-center gap-2" style={{ color: COLORS.white }}>
+                        <Eye className="w-5 h-5" style={{ color: `${COLORS.white}60` }} />
                         Comparación Visual
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <p className="text-sm text-white/40">Pieza Actual</p>
-                          <div className="rounded-2xl overflow-hidden border border-white/10">
+                          <p className="text-sm" style={{ color: `${COLORS.white}50` }}>Pieza Actual</p>
+                          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: `${COLORS.orange}30` }}>
                             <img src={imagePreview} alt="Pieza" className="w-full" />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <p className="text-sm text-white/40">Diseño Figma</p>
-                          <div className="rounded-2xl overflow-hidden border border-white/10">
+                          <p className="text-sm" style={{ color: `${COLORS.white}50` }}>Diseño Figma</p>
+                          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: `${COLORS.blue}30` }}>
                             <img src={figmaImagePreview} alt="Figma" className="w-full" />
                           </div>
                         </div>
@@ -847,11 +938,12 @@ export default function Home() {
                   )}
 
                   {/* Export Buttons */}
-                  <div className="mt-8 pt-8 border-t border-white/10 flex justify-end gap-4">
+                  <div className="mt-8 pt-8 flex justify-end gap-4" style={{ borderTop: `1px solid ${COLORS.white}10` }}>
                     <Button
                       variant="outline"
                       onClick={() => exportReport('txt')}
-                      className="border-white/10 hover:bg-white/5"
+                      className="border"
+                      style={{ borderColor: `${COLORS.white}15`, color: COLORS.white }}
                     >
                       <FileText className="w-4 h-4 mr-2" />
                       Exportar TXT
@@ -859,7 +951,8 @@ export default function Home() {
                     <Button
                       variant="outline"
                       onClick={() => exportReport('json')}
-                      className="border-white/10 hover:bg-white/5"
+                      className="border"
+                      style={{ borderColor: `${COLORS.white}15`, color: COLORS.white }}
                     >
                       <FileJson className="w-4 h-4 mr-2" />
                       Exportar JSON
