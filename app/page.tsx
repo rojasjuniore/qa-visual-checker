@@ -311,16 +311,25 @@ export default function Home() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white/[0.03] border-white/10 backdrop-blur-xl overflow-hidden"
+            className="group bg-white/[0.03] border-white/10 backdrop-blur-xl overflow-hidden hover:bg-white/[0.05] hover:border-orange-500/30 transition-all duration-500"
+            whileHover={{ y: -4 }}
           >
-            <CardHeader className="border-b border-white/5">
-              <CardTitle className="text-xl flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/20">
-                  <Eye className="w-5 h-5 text-orange-400" />
-                </div>
-                Pieza Gráfica
+            <CardHeader className="border-b border-white/5 relative overflow-hidden">
+              {/* Animated glow on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/10 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 relative">
+                <motion.div 
+                  className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/25"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Eye className="w-6 h-6 text-white" />
+                </motion.div>
+                <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-white bg-clip-text text-transparent drop-shadow-lg">
+                  Pieza Gráfica
+                </span>
               </CardTitle>
-              <CardDescription className="text-white/40">
+              <CardDescription className="text-white/60 text-base mt-2">
                 Sube la imagen o pega el texto de la pieza actual
               </CardDescription>
             </CardHeader>
@@ -331,16 +340,22 @@ export default function Home() {
                 onDragLeave={() => setDragOver(null)}
                 onDrop={(e) => handleDrop(e, 'piece')}
                 onClick={() => pieceInputRef.current?.click()}
-                className={`relative h-48 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 ${
+                className={`relative h-56 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 overflow-hidden ${
                   dragOver === 'piece' 
-                    ? 'border-orange-500 bg-orange-500/10' 
+                    ? 'border-orange-500 bg-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.3)]' 
                     : imagePreview 
                       ? 'border-transparent' 
-                      : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+                      : 'border-white/20 hover:border-orange-400/50 hover:bg-white/[0.03] bg-white/[0.02]'
                 }`}
-                whileHover={{ scale: imagePreview ? 1 : 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                animate={dragOver === 'piece' ? { scale: [1, 1.02, 1] } : {}}
+                transition={{ duration: 0.3 }}
               >
+                {/* Animated border gradient */}
+                {!imagePreview && (
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/20 to-orange-500/0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
+                )}
                 <input
                   ref={pieceInputRef}
                   type="file"
@@ -350,30 +365,68 @@ export default function Home() {
                 />
                 {imagePreview ? (
                   <>
-                    <img src={imagePreview} alt="Pieza" className="w-full h-full object-contain rounded-xl" />
+                    <motion.img 
+                      src={imagePreview} 
+                      alt="Pieza" 
+                      className="w-full h-full object-contain rounded-xl"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: 'spring', damping: 20 }}
+                    />
                     <motion.button
                       onClick={(e) => { e.stopPropagation(); setImagePreview(null); }}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-black/50 hover:bg-red-500/80 transition-colors"
-                      whileHover={{ scale: 1.1 }}
+                      className="absolute top-3 right-3 p-2.5 rounded-full bg-black/60 hover:bg-red-500 transition-colors shadow-lg"
+                      whileHover={{ scale: 1.15, rotate: 90 }}
                       whileTap={{ scale: 0.9 }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </motion.button>
+                    <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-green-500/90 text-xs font-medium flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Imagen cargada
+                    </div>
                   </>
                 ) : (
-                  <>
-                    <Upload className="w-10 h-10 text-white/20" />
-                    <span className="text-white/40">Arrastra o haz clic para subir</span>
-                  </>
+                  <motion.div 
+                    className="flex flex-col items-center gap-4"
+                    animate={dragOver === 'piece' ? { y: [0, -5, 0] } : {}}
+                    transition={{ repeat: dragOver === 'piece' ? Infinity : 0, duration: 0.5 }}
+                  >
+                    <motion.div
+                      className="p-4 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/20"
+                      whileHover={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Upload className="w-8 h-8 text-orange-400" />
+                    </motion.div>
+                    <div className="text-center">
+                      <p className="text-white/70 font-medium">Arrastra tu imagen aquí</p>
+                      <p className="text-white/40 text-sm mt-1">o haz clic para seleccionar</p>
+                    </div>
+                  </motion.div>
                 )}
               </motion.div>
 
-              <Textarea
-                placeholder="O pega el texto de la pieza aquí:&#10;Título: Oferta Especial&#10;Precio: $99.99"
-                className="min-h-[120px] bg-white/[0.02] border-white/10 text-white placeholder:text-white/20 resize-none"
-                value={cardText}
-                onChange={(e) => setCardText(e.target.value)}
-              />
+              <motion.div
+                whileFocus={{ scale: 1.01 }}
+                className="relative"
+              >
+                <Textarea
+                  placeholder="O pega el texto de la pieza aquí:&#10;Título: Oferta Especial&#10;Precio: $99.99"
+                  className="min-h-[120px] bg-white/[0.02] border-white/10 text-white placeholder:text-white/30 resize-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                  value={cardText}
+                  onChange={(e) => setCardText(e.target.value)}
+                />
+                {cardText && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute top-2 right-2 px-2 py-1 rounded-md bg-orange-500/20 text-orange-300 text-xs"
+                  >
+                    {cardText.split('\n').filter(l => l.trim()).length} líneas
+                  </motion.div>
+                )}
+              </motion.div>
             </CardContent>
           </MotionCard>
 
@@ -382,16 +435,25 @@ export default function Home() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white/[0.03] border-white/10 backdrop-blur-xl overflow-hidden"
+            className="group bg-white/[0.03] border-white/10 backdrop-blur-xl overflow-hidden hover:bg-white/[0.05] hover:border-violet-500/30 transition-all duration-500"
+            whileHover={{ y: -4 }}
           >
-            <CardHeader className="border-b border-white/5">
-              <CardTitle className="text-xl flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20">
-                  <Palette className="w-5 h-5 text-violet-400" />
-                </div>
-                Diseño Figma
+            <CardHeader className="border-b border-white/5 relative overflow-hidden">
+              {/* Animated glow on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/10 to-violet-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 relative">
+                <motion.div 
+                  className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/25"
+                  whileHover={{ scale: 1.1, rotate: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Palette className="w-6 h-6 text-white" />
+                </motion.div>
+                <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-white bg-clip-text text-transparent drop-shadow-lg">
+                  Diseño Figma
+                </span>
               </CardTitle>
-              <CardDescription className="text-white/40">
+              <CardDescription className="text-white/60 text-base mt-2">
                 Conecta con Figma o sube la referencia
               </CardDescription>
             </CardHeader>
@@ -444,16 +506,22 @@ export default function Home() {
                 onDragLeave={() => setDragOver(null)}
                 onDrop={(e) => handleDrop(e, 'figma')}
                 onClick={() => figmaInputRef.current?.click()}
-                className={`relative h-48 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 ${
+                className={`relative h-56 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-3 overflow-hidden ${
                   dragOver === 'figma' 
-                    ? 'border-violet-500 bg-violet-500/10' 
+                    ? 'border-violet-500 bg-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.3)]' 
                     : figmaImagePreview 
                       ? 'border-transparent' 
-                      : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+                      : 'border-white/20 hover:border-violet-400/50 hover:bg-white/[0.03] bg-white/[0.02]'
                 }`}
-                whileHover={{ scale: figmaImagePreview ? 1 : 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                animate={dragOver === 'figma' ? { scale: [1, 1.02, 1] } : {}}
+                transition={{ duration: 0.3 }}
               >
+                {/* Animated border gradient */}
+                {!figmaImagePreview && (
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-500/0 via-violet-500/20 to-violet-500/0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
+                )}
                 <input
                   ref={figmaInputRef}
                   type="file"
@@ -463,67 +531,171 @@ export default function Home() {
                 />
                 {figmaImagePreview ? (
                   <>
-                    <img src={figmaImagePreview} alt="Figma" className="w-full h-full object-contain rounded-xl" />
+                    <motion.img 
+                      src={figmaImagePreview} 
+                      alt="Figma" 
+                      className="w-full h-full object-contain rounded-xl"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: 'spring', damping: 20 }}
+                    />
                     <motion.button
                       onClick={(e) => { e.stopPropagation(); setFigmaImagePreview(null); }}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-black/50 hover:bg-red-500/80 transition-colors"
-                      whileHover={{ scale: 1.1 }}
+                      className="absolute top-3 right-3 p-2.5 rounded-full bg-black/60 hover:bg-red-500 transition-colors shadow-lg"
+                      whileHover={{ scale: 1.15, rotate: 90 }}
                       whileTap={{ scale: 0.9 }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </motion.button>
+                    <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-violet-500/90 text-xs font-medium flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Referencia cargada
+                    </div>
                   </>
                 ) : (
-                  <>
-                    <Upload className="w-10 h-10 text-white/20" />
-                    <span className="text-white/40">Arrastra o haz clic para subir</span>
-                  </>
+                  <motion.div 
+                    className="flex flex-col items-center gap-4"
+                    animate={dragOver === 'figma' ? { y: [0, -5, 0] } : {}}
+                    transition={{ repeat: dragOver === 'figma' ? Infinity : 0, duration: 0.5 }}
+                  >
+                    <motion.div
+                      className="p-4 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20"
+                      whileHover={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Upload className="w-8 h-8 text-violet-400" />
+                    </motion.div>
+                    <div className="text-center">
+                      <p className="text-white/70 font-medium">Arrastra tu imagen aquí</p>
+                      <p className="text-white/40 text-sm mt-1">o haz clic para seleccionar</p>
+                    </div>
+                  </motion.div>
                 )}
               </motion.div>
 
-              <Textarea
-                placeholder="Texto del diseño Figma:&#10;Título: Oferta Especial&#10;Precio: $89.99"
-                className="min-h-[120px] bg-white/[0.02] border-white/10 text-white placeholder:text-white/20 resize-none"
-                value={figmaText}
-                onChange={(e) => setFigmaText(e.target.value)}
-              />
+              <motion.div
+                whileFocus={{ scale: 1.01 }}
+                className="relative"
+              >
+                <Textarea
+                  placeholder="Texto del diseño Figma:&#10;Título: Oferta Especial&#10;Precio: $89.99"
+                  className="min-h-[120px] bg-white/[0.02] border-white/10 text-white placeholder:text-white/30 resize-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                  value={figmaText}
+                  onChange={(e) => setFigmaText(e.target.value)}
+                />
+                {figmaText && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute top-2 right-2 px-2 py-1 rounded-md bg-violet-500/20 text-violet-300 text-xs"
+                  >
+                    {figmaText.split('\n').filter(l => l.trim()).length} líneas
+                  </motion.div>
+                )}
+              </motion.div>
             </CardContent>
           </MotionCard>
         </div>
 
         {/* Compare Button */}
         <motion.div 
-          className="flex justify-center mb-16"
+          className="flex flex-col items-center gap-4 mb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
+          {/* Status indicator */}
+          <motion.div 
+            className="flex items-center gap-6 text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className={`flex items-center gap-2 ${imagePreview ? 'text-green-400' : 'text-white/30'}`}>
+              <div className={`w-2 h-2 rounded-full ${imagePreview ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
+              Pieza
+            </div>
+            <div className={`flex items-center gap-2 ${figmaImagePreview ? 'text-green-400' : 'text-white/30'}`}>
+              <div className={`w-2 h-2 rounded-full ${figmaImagePreview ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
+              Figma
+            </div>
+            <div className={`flex items-center gap-2 ${(imagePreview && figmaImagePreview) ? 'text-violet-400' : 'text-white/30'}`}>
+              <div className={`w-2 h-2 rounded-full ${(imagePreview && figmaImagePreview) ? 'bg-violet-400 animate-pulse' : 'bg-white/20'}`} />
+              IA Ready
+            </div>
+          </motion.div>
+
           <motion.button
             onClick={handleCompare}
             disabled={isComparing || (!cardText && !figmaText && !imagePreview)}
-            className="group relative px-12 py-5 rounded-2xl font-semibold text-lg overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="group relative px-14 py-6 rounded-2xl font-semibold text-xl overflow-hidden disabled:opacity-40 disabled:cursor-not-allowed"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            animate={(imagePreview && figmaImagePreview && !isComparing) ? { 
+              boxShadow: ['0 0 20px rgba(139,92,246,0.3)', '0 0 40px rgba(139,92,246,0.5)', '0 0 20px rgba(139,92,246,0.3)']
+            } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            {/* Button Background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 opacity-90" />
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 blur-xl opacity-50 group-hover:opacity-70 transition-opacity" />
+            {/* Animated Background */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600"
+              animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+              style={{ backgroundSize: '200% 200%' }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 blur-2xl opacity-50 group-hover:opacity-80 transition-opacity" />
+            
+            {/* Sparkle effects */}
+            {!isComparing && (
+              <>
+                <motion.div 
+                  className="absolute top-2 left-4 w-1 h-1 bg-white rounded-full"
+                  animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+                />
+                <motion.div 
+                  className="absolute bottom-3 right-6 w-1.5 h-1.5 bg-white rounded-full"
+                  animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                />
+                <motion.div 
+                  className="absolute top-4 right-10 w-1 h-1 bg-white rounded-full"
+                  animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                />
+              </>
+            )}
             
             {/* Button Content */}
             <span className="relative flex items-center gap-3">
               {isComparing ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Analizando con IA...
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span>Analizando con IA...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5" />
-                  Comparar y Generar Reporte
+                  <motion.div
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Sparkles className="w-6 h-6" />
+                  </motion.div>
+                  <span>Comparar y Generar Reporte</span>
                 </>
               )}
             </span>
           </motion.button>
+
+          {(imagePreview && figmaImagePreview) && (
+            <motion.p 
+              className="text-white/40 text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              La comparación con IA analizará diferencias visuales automáticamente
+            </motion.p>
+          )}
         </motion.div>
 
         {/* Results */}
