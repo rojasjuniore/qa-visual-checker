@@ -542,10 +542,10 @@ export default function Home() {
                 </TabsList>
                 
                 <TabsContent value="figma" className="mt-4 space-y-4">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Input
                       placeholder="https://figma.com/design/..."
-                      className="border text-white flex-1"
+                      className="border text-white flex-1 min-w-0"
                       style={{ backgroundColor: `${COLORS.white}02`, borderColor: `${COLORS.white}15` }}
                       value={figmaUrl}
                       onChange={(e) => setFigmaUrl(e.target.value)}
@@ -553,10 +553,11 @@ export default function Home() {
                     <Button 
                       onClick={fetchFromFigma}
                       disabled={isLoadingFigma || !figmaUrl}
-                      className="px-6"
-                      style={{ backgroundColor: COLORS.blue }}
+                      className="px-4 sm:px-6 flex-shrink-0"
+                      style={{ backgroundColor: COLORS.blue, color: COLORS.white }}
                     >
-                      {isLoadingFigma ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                      {isLoadingFigma ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4 mr-2" />}
+                      <span className="sm:inline">Conectar</span>
                     </Button>
                   </div>
                   {figmaData && (
@@ -1018,21 +1019,27 @@ export default function Home() {
                   )}
 
                   {/* Export Buttons */}
-                  <div className="mt-8 pt-8 flex justify-end gap-4" style={{ borderTop: `1px solid ${COLORS.white}10` }}>
+                  <div className="mt-8 pt-8 flex flex-wrap justify-end gap-4" style={{ borderTop: `1px solid ${COLORS.white}10` }}>
                     <Button
-                      variant="outline"
                       onClick={() => exportReport('txt')}
-                      className="border"
-                      style={{ borderColor: `${COLORS.white}15`, color: COLORS.white }}
+                      className="font-semibold"
+                      style={{ 
+                        backgroundColor: COLORS.blue, 
+                        color: COLORS.white,
+                        border: 'none'
+                      }}
                     >
                       <FileText className="w-4 h-4 mr-2" />
                       Exportar TXT
                     </Button>
                     <Button
-                      variant="outline"
                       onClick={() => exportReport('json')}
-                      className="border"
-                      style={{ borderColor: `${COLORS.white}15`, color: COLORS.white }}
+                      className="font-semibold"
+                      style={{ 
+                        backgroundColor: COLORS.orange, 
+                        color: COLORS.white,
+                        border: 'none'
+                      }}
                     >
                       <FileJson className="w-4 h-4 mr-2" />
                       Exportar JSON
