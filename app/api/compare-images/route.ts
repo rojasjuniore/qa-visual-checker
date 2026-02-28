@@ -11,9 +11,23 @@ export async function POST(request: NextRequest) {
     const openaiKey = apiKey || process.env.OPENAI_API_KEY;
 
     if (!openaiKey) {
+      // Return a message indicating manual review is needed
       return NextResponse.json({ 
-        error: 'OpenAI API key required. Provide it in the request or set OPENAI_API_KEY env var.' 
-      }, { status: 401 });
+        success: true,
+        noApiKey: true,
+        comparison: {
+          summary: 'No se pudo realizar análisis automático con IA. Se requiere revisión manual.',
+          match_percentage: null,
+          differences: [{
+            category: 'REVISIÓN MANUAL',
+            severity: 'warning',
+            location: 'General',
+            expected: 'Análisis automático con IA',
+            found: 'API Key de OpenAI no configurada',
+            suggestion: 'Configura tu API Key de OpenAI en la sección de configuración para habilitar el análisis automático con IA. Mientras tanto, revisa las imágenes manualmente.'
+          }]
+        }
+      });
     }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {

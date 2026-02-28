@@ -153,8 +153,14 @@ export default function Home() {
     return corrections;
   };
 
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [needsManualReview, setNeedsManualReview] = useState(false);
+
   const compareWithAI = async () => {
     if (!imagePreview || !figmaImagePreview) return null;
+    setAiError(null);
+    setNeedsManualReview(false);
+    
     try {
       const response = await fetch('/api/compare-images', {
         method: 'POST',
@@ -162,8 +168,22 @@ export default function Home() {
         body: JSON.stringify({ image1: imagePreview, image2: figmaImagePreview, apiKey: openaiKey || undefined }),
       });
       const data = await response.json();
-      return response.ok ? data.comparison as AIComparison : null;
-    } catch { return null; }
+      
+      if (data.noApiKey) {
+        setNeedsManualReview(true);
+        return data.comparison as AIComparison;
+      }
+      
+      if (!response.ok) {
+        setAiError(data.error || 'Error al analizar con IA');
+        return null;
+      }
+      
+      return data.comparison as AIComparison;
+    } catch (error) {
+      setAiError('Error de conexión con el servicio de IA');
+      return null;
+    }
   };
 
   const handleCompare = async () => {
@@ -832,7 +852,48 @@ export default function Home() {
                 </CardHeader>
                 
                 <CardContent className="p-6">
-                  {corrections.length === 0 ? (
+                  {/* Warning when no API key */}
+                  {needsManualReview && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-6 p-4 rounded-xl flex items-start gap-3"
+                      style={{ backgroundColor: `${COLORS.orange}15`, border: `1px solid ${COLORS.orange}30` }}
+                    >
+                      <AlertTriangle className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: COLORS.orange }} />
+                      <div>
+                        <p className="font-semibold" style={{ color: COLORS.orange }}>Análisis con IA no disponible</p>
+                        <p className="text-sm mt-1" style={{ color: `${COLORS.white}70` }}>
+                          Para habilitar la comparación automática con IA, configura tu API Key de OpenAI en la sección de configuración de APIs.
+                        </p>
+                        <button
+                          onClick={() => setShowApiConfig(true)}
+                          className="mt-2 text-sm font-medium underline"
+                          style={{ color: COLORS.blue }}
+                        >
+                          Configurar API Key
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* AI Error message */}
+                  {aiError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-6 p-4 rounded-xl flex items-start gap-3"
+                      style={{ backgroundColor: `${COLORS.orange}15`, border: `1px solid ${COLORS.orange}30` }}
+                    >
+                      <X className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: COLORS.orange }} />
+                      <div>
+                        <p className="font-semibold" style={{ color: COLORS.orange }}>Error en análisis con IA</p>
+                        <p className="text-sm mt-1" style={{ color: `${COLORS.white}70` }}>{aiError}</p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {corrections.length === 0 && !needsManualReview ? (
                     <motion.div
                       initial={{ scale: 0.9 }}
                       animate={{ scale: 1 }}
@@ -847,6 +908,18 @@ export default function Home() {
                       </motion.div>
                       <h3 className="text-2xl font-bold mb-2" style={{ color: COLORS.blue }}>Todo correcto</h3>
                       <p style={{ color: `${COLORS.white}50` }}>No se encontraron diferencias entre la pieza y el diseño</p>
+                    </motion.div>
+                  ) : corrections.length === 0 && needsManualReview ? (
+                    <motion.div
+                      initial={{ scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      className="py-8 text-center"
+                    >
+                      <Eye className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.blue }} />
+                      <h3 className="text-xl font-bold mb-2" style={{ color: COLORS.white }}>Revisión Manual Requerida</h3>
+                      <p style={{ color: `${COLORS.white}50` }}>
+                        Compara las imágenes visualmente a continuación para identificar diferencias.
+                      </p>
                     </motion.div>
                   ) : (
                     <div className="space-y-4">
